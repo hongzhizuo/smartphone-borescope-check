@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Smartphone borescope check</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #4f1107;
+      --accent: #ba2811;
+      --paper: #fdf2f0;
+      --line: #e4cfc9;
+      --card: #fff;
+      --muted: #7a5c56;
+      --ok: #1f6b3a;
+      --no: #ba2811;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font: 17px/1.45 "Iowan Old Style", Palatino, Georgia, serif;
+      color: var(--ink);
+      background: var(--paper);
+    }
+    main {
+      max-width: 52rem;
+      margin: 0 auto;
+      padding: 2rem 1.25rem 3rem;
+    }
+    h1 { font-size: 1.9rem; line-height: 1.15; margin: 0 0 0.5rem; }
+    h2 {
+      font: 600 0.82rem/1.2 Montserrat, "Segoe UI", sans-serif;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      margin: 0 0 0.55rem;
+    }
+    p { margin: 0; }
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1.2fr) minmax(16rem, 0.8fr);
+      gap: 1.25rem;
+      margin-top: 1.4rem;
+      align-items: start;
+    }
+    .stack { display: grid; gap: 1rem; }
+    section, .verdict, .checks {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 0.9rem 1rem 1rem;
+    }
+    .side { display: grid; gap: 1rem; position: sticky; top: 1rem; }
+    .control { display: flex; gap: 0.75rem; align-items: center; }
+    input[type="range"] { flex: 1; accent-color: var(--accent); }
+    input[type="number"] {
+      width: 5.2rem;
+      font: inherit;
+      padding: 0.35rem 0.45rem;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+    }
+    .hint { color: var(--muted); font-size: 0.92rem; margin-top: 0.35rem; }
+    .choices, .toggles { display: grid; gap: 0.45rem; }
+    .choices button, .toggles button {
+      text-align: left;
+      font: inherit;
+      color: var(--ink);
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 0.65rem 0.75rem;
+      cursor: pointer;
+    }
+    .choices button[aria-pressed="true"],
+    .toggles button[aria-pressed="true"] {
+      border-color: var(--accent);
+      outline: 2px solid var(--accent);
+      background: white;
+    }
+    .meter { display: grid; gap: 0.35rem; margin-top: 0.7rem; }
+    .meter span { font: 600 0.78rem/1 Montserrat, "Segoe UI", sans-serif; }
+    .track { height: 0.7rem; background: #f3e4e0; border-radius: 99px; overflow: hidden; }
+    .fill { height: 100%; width: 0; background: var(--ok); }
+    .fill.short { background: var(--no); }
+    #answer {
+      font-size: 2rem;
+      line-height: 1.1;
+      margin: 0.2rem 0 0.45rem;
+    }
+    .checks ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.55rem; }
+    .checks li { display: grid; grid-template-columns: 1.3rem 1fr; gap: 0.4rem; }
+    .mark { font-weight: 700; }
+    .mark.ok { color: var(--ok); }
+    .mark.no { color: var(--no); }
+    .mark.wait { color: var(--muted); }
+    @media (max-width: 800px) {
+      .layout { grid-template-columns: 1fr; }
+      .side { position: static; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Smartphone borescope check</h1>
+    <p>A 6&nbsp;mm smartphone borescope with a 1&nbsp;m cable. The tip bends both ways. Move the controls. The answer stays either “Look first” or “Take it apart”.</p>
+    <div class="layout">
+      <div class="stack">
+        <section>
+          <h2>Opening</h2>
+          <label for="diameter">Hole diameter (mm)</label>
+          <div class="control">
+            <input id="slider" type="range" min="2" max="20" step="0.5" value="6" aria-label="Hole diameter slider">
+            <input id="diameter" type="number" min="0.5" step="0.1" value="6">
+          </div>
+          <div class="meter">
+            <span id="fit-label">Hole against a 6 mm probe</span>
+            <div class="track"><div class="fill" id="fit"></div></div>
+          </div>
+        </section>
+        <section>
+          <h2>Reach</h2>
+          <label for="distance">Distance to the spot (cm)</label>
+          <div class="control">
+            <input id="distance-slider" type="range" min="10" max="150" step="5" value="40" aria-label="Distance slider">
+            <input id="distance" type="number" min="1" step="1" value="40">
+          </div>
+          <p class="hint">The cable on this smartphone borescope is 1 m, which is 100 cm.</p>
+        </section>
+        <section>
+          <h2>Bend</h2>
+          <div class="choices" id="bend" role="group" aria-label="How the tip has to bend">
+            <button type="button" data-bend="straight" aria-pressed="true">Straight ahead</button>
+            <button type="button" data-bend="both" aria-pressed="false">Around one bend, either way</button>
+            <button type="button" data-bend="four" aria-pressed="false">Needs to aim in four directions</button>
+          </div>
+        </section>
+        <section>
+          <h2>Picture</h2>
+          <div class="choices" id="screen" role="group" aria-label="What is on the screen">
+            <button type="button" data-screen="none" aria-pressed="true">Nothing in the frame yet</button>
+            <button type="button" data-screen="debris" aria-pressed="false">Debris filling the bore</button>
+            <button type="button" data-screen="edge" aria-pressed="false">A broken edge</button>
+            <button type="button" data-screen="dirt" aria-pressed="false">Dirt you can wipe off</button>
+          </div>
+        </section>
+        <section>
+          <h2>Before the probe goes in</h2>
+          <div class="toggles">
+            <button type="button" id="hot" aria-pressed="false">The part is still hot</button>
+            <button type="button" id="wet" aria-pressed="false">The handle or phone plug would get wet</button>
+          </div>
+          <p class="hint">The probe can go near water. The handle and the USB-C plug stay dry. Let a hot part cool first.</p>
+        </section>
+      </div>
+      <div class="side">
+        <div class="verdict">
+          <h2>Answer</h2>
+          <p id="answer">Look first</p>
+          <p id="reason"></p>
+        </div>
+        <div class="checks">
+          <h2>Checks</h2>
+          <ol id="checks"></ol>
+        </div>
+      </div>
+    </div>
+  </main>
+  <script>
+    const PROBE_MM = 6;
+    const CABLE_CM = 100;
+    const state = {
+      diameter: 6,
+      distance: 40,
+      bend: "straight",
+      screen: "none",
+      hot: false,
+      wet: false
+    };
+
+    const diameterInput = document.getElementById("diameter");
+    const diameterSlider = document.getElementById("slider");
+    const distanceInput = document.getElementById("distance");
+    const distanceSlider = document.getElementById("distance-slider");
+    const answer = document.getElementById("answer");
+    const reason = document.getElementById("reason");
+    const checks = document.getElementById("checks");
+    const fit = document.getElementById("fit");
+    const fitLabel = document.getElementById("fit-label");
+
+    function decide(input) {
+      const holeOk = input.diameter >= PROBE_MM;
+      const reachOk = input.distance <= CABLE_CM;
+      const bendOk = input.bend !== "four";
+      const coldOk = !input.hot;
+      const dryOk = !input.wet;
+      const pictureFault = input.screen === "debris" || input.screen === "edge";
+      const list = [
+        { name: "Part is cold", ok: coldOk, detail: coldOk ? "Cool enough to put the tip in." : "Still hot. The tip can melt." },
+        { name: "Handle and plug stay dry", ok: dryOk, detail: dryOk ? "Only the probe needs to go near water." : "Move the phone and the handle somewhere dry." },
+        { name: "Hole takes a 6 mm probe", ok: holeOk, detail: holeOk ? input.diameter + " mm is wide enough." : input.diameter + " mm is tighter than the probe." },
+        { name: "Spot is within 1 m", ok: reachOk, detail: reachOk ? input.distance + " cm is inside the cable." : input.distance + " cm is past the 1 m cable." },
+        { name: "A two-way bend is enough", ok: bendOk, detail: bendOk ? "Straight, or one bend either way." : "This smartphone borescope does not aim in four directions." },
+        { name: "Picture shows a reason to unbolt", ok: pictureFault, detail: pictureFault ? "Debris or a broken edge is on the screen." : "The frame is empty, or the dirt can be wiped off." }
+      ];
+      const blockers = [
+        [!coldOk, "Look first", "The part is still hot. Let it cool before this smartphone borescope goes in."],
+        [!dryOk, "Look first", "Keep the handle and the phone plug dry. Look again once they are out of the wet."],
+        [!holeOk, "Look first", "A 6 mm smartphone borescope cannot enter this hole. Find an opening that is already wide enough."],
+        [!reachOk, "Look first", "The cable is 1 m. Find a closer opening before you unbolt the cover."],
+        [!bendOk && !pictureFault, "Look first", "This smartphone borescope bends both ways, not in four directions. Find an opening where that bend is enough."],
+        [input.screen === "none", "Look first", "Nothing is on the screen yet. Look through an opening you already have."],
+        [input.screen === "dirt", "Look first", "The smartphone borescope picture is dirt you can wipe off. That is not a reason to unbolt the cover."]
+      ];
+      const blocked = blockers.find(function (item) { return item[0]; });
+      if (blocked) return { answer: blocked[1], reason: blocked[2], checks: list };
+      return {
+        answer: "Take it apart",
+        reason: "The 6 mm smartphone borescope can reach this spot, and the screen shows debris or a broken edge.",
+        checks: list
+      };
+    }
+
+    function bindPair(slider, field, key) {
+      function apply(value, source) {
+        const number = Number(value);
+        if (!Number.isFinite(number) || number <= 0) return;
+        state[key] = number;
+        field.value = String(number);
+        const clamped = Math.min(Number(slider.max), Math.max(Number(slider.min), number));
+        if (source !== "slider") slider.value = String(clamped);
+        render();
+      }
+      slider.addEventListener("input", function () { apply(slider.value, "slider"); });
+      field.addEventListener("input", function () { apply(field.value, "field"); });
+    }
+
+    function bindGroup(id, key) {
+      const buttons = Array.from(document.querySelectorAll("#" + id + " button"));
+      buttons.forEach(function (button) {
+        button.addEventListener("click", function () {
+          state[key] = button.dataset[key];
+          buttons.forEach(function (item) {
+            item.setAttribute("aria-pressed", item === button ? "true" : "false");
+          });
+          render();
+        });
+      });
+    }
+
+    function bindToggle(id, key) {
+      const button = document.getElementById(id);
+      button.addEventListener("click", function () {
+        state[key] = !state[key];
+        button.setAttribute("aria-pressed", state[key] ? "true" : "false");
+        render();
+      });
+    }
+
+    function render() {
+      const decision = decide(state);
+      answer.textContent = decision.answer;
+      reason.textContent = decision.reason;
+      const ratio = Math.max(0, Math.min(1, state.diameter / PROBE_MM));
+      fit.style.width = (ratio * 100) + "%";
+      fit.className = "fill" + (state.diameter < PROBE_MM ? " short" : "");
+      fitLabel.textContent = state.diameter < PROBE_MM
+        ? "Hole is tighter than the 6 mm probe"
+        : "Hole can take the 6 mm probe";
+      checks.innerHTML = decision.checks.map(function (item) {
+        const mark = item.ok ? "ok" : "no";
+        const glyph = item.ok ? "Yes" : "No";
+        return "<li><span class='mark " + mark + "'>" + glyph + "</span><span><strong>" + item.name + "</strong><br>" + item.detail + "</span></li>";
+      }).join("");
+    }
+
+    bindPair(diameterSlider, diameterInput, "diameter");
+    bindPair(distanceSlider, distanceInput, "distance");
+    bindGroup("bend", "bend");
+    bindGroup("screen", "screen");
+    bindToggle("hot", "hot");
+    bindToggle("wet", "wet");
+    render();
+  </script>
+</body>
+</html>
